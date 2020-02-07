@@ -20,6 +20,6 @@ io.on('connection', (socket) => {
     })
 });
 
-http.listen(5000, () => {
+http.listen(process.env.PORT || 5000, () => {
     console.log('Server started on port 5000');
 });

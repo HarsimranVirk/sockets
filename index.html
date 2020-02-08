@@ -90,6 +90,12 @@
                 sendBtn.click();
             }
         });
+        document.getElementById('inputTextMob').addEventListener('keyup', (e) => {
+            if(e.keyCode === 13){
+                e.preventDefault();
+                sendMobBtn.click();
+            }
+        });
         socket.on('msg', (msg) => {
             if(msg.id === userID){
                 createNewMsg('You',msg.msg);

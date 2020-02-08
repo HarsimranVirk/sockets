@@ -53,24 +53,40 @@
             return uuid;
         };
         var socket = io();
-        var userID = create_UUID();
+        var name = "";
+        const userID = create_UUID();
         var sendBtn = document.getElementById('send');
         var sendMobBtn = document.getElementById('sendMob');
         var textbox = document.getElementById('textbox');
+        
 
-        function sendTexttoServer() {
-            var inputText = document.getElementById('inputText');
-            var inputTextMob = document.getElementById('inputTextMob');
-            if(inputText.value !== "" || inputTextMob.value !== ""){
-                if(inputTextMob !== ""){
-                    socket.emit('msg', {id: userID, msg: inputTextMob.value});
-                    inputTextMob.value = "";
-                } else if(inputText !== ""){
-                    socket.emit('msg', {id: userID, msg: inputText.value});
-                    inputText.value = "";
-                } else {
-                    console.log("error");
+        function sendTexttoServer(chat) {
+            if(chat === true){
+                var inputText = document.getElementById('inputText');
+                var inputTextMob = document.getElementById('inputTextMob');
+                if(inputText.value !== "" || inputTextMob.value !== ""){
+                    if(inputTextMob.value !== ""){
+                        socket.emit('msg', {id: userID, username: name, msg: inputTextMob.value});
+                        inputTextMob.value = "";
+                    }
+                    if(inputText.value !== ""){
+                        socket.emit('msg', {id: userID, username: name, msg: inputText.value});
+                        inputText.value = "";
+                    }
                 }
+            } else {
+                console.log("codeBlock entered");
+                inputText = document.getElementById('inputText');
+                inputTextMob = document.getElementById('inputTextMob');
+                if(inputText.value !== ""){
+                    name = inputText.value;
+                    inputText.value = '';
+                } 
+                if(inputTextMob.value !== ""){
+                    name = inputTextMob.value;
+                    inputTextMob.value = '';
+                }
+                createNewMsg("Your name", name);
             }
         };
 
@@ -82,8 +98,22 @@
 
         }
 
-        sendBtn.addEventListener('click',sendTexttoServer);
-        sendMobBtn.addEventListener('click', sendTexttoServer);
+        sendBtn.addEventListener('click', () => {
+            if(name === ""){
+                sendTexttoServer(false);
+            } 
+            else {
+                sendTexttoServer(true);
+            } 
+        });
+        sendMobBtn.addEventListener('click', () => {
+            if(name === ""){
+                sendTexttoServer(false);
+            } 
+            else {
+                sendTexttoServer(true);
+            } 
+        });
         document.getElementById('inputText').addEventListener('keyup', (e) => {
             if(e.keyCode === 13){
                 e.preventDefault();
@@ -98,11 +128,13 @@
         });
         socket.on('msg', (msg) => {
             if(msg.id === userID){
-                createNewMsg('You',msg.msg);
+                createNewMsg(msg.username,msg.msg);
             } else {
-                createNewMsg('Stranger',msg.msg);
+                createNewMsg(msg.username,msg.msg);
             }
         });
+
+        window.onload = createNewMsg("Server", "Enter your name");
 
 
     </script>

@@ -24,53 +24,66 @@
             </div>
             <div class="card-action">
                 <div class="row">
-                    <div class="col s11">
+                    <div class="col s10 hide-on-small-only">
                         <input id="inputText" type="text", placeholder="Type message">
                     </div>
-                    <div class="col s1">
-                        <button id="send" class="btn waves-effect waves-light red lighten-2">
+                    <class class="s12 hide-on-med-and-up">
+                        <input id="inputTextMob" type="text", placeholder="Type message">
+                    </class>
+                    <div class="col s2">
+                        <button id="send" class="btn waves-effect waves-light red lighten-2 hide-on-small-only">
                             Send
                         </button>
                     </div>
                 </div> 
+                <button id="sendMob" class="hide-on-med-and-up btn waves-effect waves-light red lighten-2">Send</button>
             </div>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        function create_UUID(){
+            var dt = new Date().getTime();
+            var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = (dt + Math.random()*16)%16 | 0;
+                dt = Math.floor(dt/16);
+                return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+            });
+            return uuid;
+        };
         var socket = io();
+        var userID = create_UUID();
         var sendBtn = document.getElementById('send');
+        var sendMobBtn = document.getElementById('sendMob');
         var textbox = document.getElementById('textbox');
 
         function sendTexttoServer() {
             var inputText = document.getElementById('inputText');
-            socket.emit('msg', inputText.value);
-            inputText.value = "";
+            var inputTextMob = document.getElementById('inputTextMob');
+            if(inputText.value !== "" || inputTextMob.value !== ""){
+                if(inputTextMob !== ""){
+                    socket.emit('msg', {id: userID, msg: inputTextMob.value});
+                    inputTextMob.value = "";
+                } else if(inputText !== ""){
+                    socket.emit('msg', {id: userID, msg: inputText.value});
+                    inputText.value = "";
+                } else {
+                    console.log("error");
+                }
+            }
         };
 
-        function createNewMsg(msg){
-         /* msgDiv = document.createElement('div');
-            msgDiv.setAtrribute("class", "col s6 offset-s6");
-            msgCard = document.createElement('div');
-            msgCard.setAtrribute("class", "card");
-            msgContent = document.createElement('div');
-            msgContent.setAtrribute("class", "card-content");
+        function createNewMsg(user,msg){
             msgPara = document.createElement('p');
-            msgText = document.createTextNode(msg);
-            msgPara.appendChild(msgText);
-            msgContent.appendChild(msgPara);
-            msgCard.appendChild(msgContent);
-            msgDiv.appendChild(msgCard);
-            textbox.appendChild(msgDiv); */
-            msgPara = document.createElement('p');
-            msgText = document.createTextNode(msg);
+            msgText = document.createTextNode(user + ": " + msg);
             msgPara.appendChild(msgText);
             textbox.appendChild(msgPara);
 
         }
 
         sendBtn.addEventListener('click',sendTexttoServer);
+        sendMobBtn.addEventListener('click', sendTexttoServer);
         document.getElementById('inputText').addEventListener('keyup', (e) => {
             if(e.keyCode === 13){
                 e.preventDefault();
@@ -78,7 +91,11 @@
             }
         });
         socket.on('msg', (msg) => {
-            createNewMsg(msg);
+            if(msg.id === userID){
+                createNewMsg('You',msg.msg);
+            } else {
+                createNewMsg('Stranger',msg.msg);
+            }
         });
 
 
